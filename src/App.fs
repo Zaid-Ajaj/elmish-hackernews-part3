@@ -60,7 +60,7 @@ let (|HttpOk|HttpError|) status =
 let rnd = System.Random()
 
 let loadStoryItem (id: int) = async {
-    do! Async.Sleep (rnd.Next(500, 3000))
+    do! Async.Sleep (rnd.Next(500, 1000))
     let endpoint = sprintf "https://hacker-news.firebaseio.com/v0/item/%d.json" id
     let! (status, responseText) = Http.get endpoint
     match status with
