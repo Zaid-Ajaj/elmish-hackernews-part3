@@ -21,11 +21,13 @@ type Stories =
   | Top
   | Job
 
-type StoryItem = Deferred<Result<HackernewsItem, string>>
+type DeferredResult<'t> = Deferred<Result<'t, string>>
+
+type DeferredStoryItem = DeferredResult<HackernewsItem>
 
 type State =
   { CurrentStories: Stories
-    StoryItems : Deferred<Result<Map<int, StoryItem>, string>> }
+    StoryItems : DeferredResult<Map<int, DeferredStoryItem>> }
 
 type Msg =
   | LoadStoryItems of AsyncOperationEvent<Result<int list, string>>
@@ -255,7 +257,7 @@ let renderStories items =
       items
       |> Map.toList
       |> List.map (fun (id, storyItem) -> renderStoryItem id storyItem)
-      |> React.fragment
+      |> Html.div
 
 let title = Html.h1 [
   prop.className "title"
@@ -274,5 +276,4 @@ let render (state: State) (dispatch: Msg -> unit) =
 
 Program.mkProgram init update render
 |> Program.withReactSynchronous "elmish-app"
-|> Program.withConsoleTrace
 |> Program.run
