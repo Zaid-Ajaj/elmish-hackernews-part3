@@ -62,7 +62,8 @@ let (|HttpOk|HttpError|) status =
 let rnd = System.Random()
 
 let loadStoryItem (id: int) = async {
-    do! Async.Sleep (rnd.Next(500, 1000))
+    // simulate high network latency
+    do! Async.Sleep (rnd.Next(1000, 3000))
     let endpoint = sprintf "https://hacker-news.firebaseio.com/v0/item/%d.json" id
     let! (status, responseText) = Http.get endpoint
     match status with
@@ -89,7 +90,7 @@ let loadStoryItems stories = async {
             return LoadStoryItems (Finished (Error parseError))
 
     | HttpError ->
-      // non-OK response goes finishes with an error
+      // non-OK response finishes with an error
       return LoadStoryItems (Finished (Error "Could not load the IDs of the story items."))
 }
 
