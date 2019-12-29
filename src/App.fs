@@ -31,7 +31,7 @@ type State =
 
 type Msg =
   | LoadStoryItems of AsyncOperationEvent<Result<int list, string>>
-  | LoadedStoryItem of Result<HackernewsItem, int * string>
+  | LoadedStoryItem of int * Result<HackernewsItem, string>
   | ChangeStories of Stories
 
 let init() =
@@ -68,10 +68,10 @@ let loadStoryItem (id: int) = async {
     match status with
     | HttpOk ->
         match Decode.fromString itemDecoder responseText with
-        | Ok storyItem -> return LoadedStoryItem (Ok storyItem)
-        | Error parseError -> return LoadedStoryItem (Error (id, parseError))
+        | Ok storyItem -> return LoadedStoryItem (id, Ok storyItem)
+        | Error parseError -> return LoadedStoryItem (id, Error parseError)
     | HttpError ->
-        return LoadedStoryItem (Error (id, "Http error while loading " + string id))
+        return LoadedStoryItem (id, Error ("Http error while loading " + string id))
 }
 
 let loadStoryItems stories = async {
@@ -118,13 +118,13 @@ let update (msg: Msg) (state: State) =
         let nextState = { state with StoryItems = Resolved (Error error) }
         nextState, Cmd.none
 
-    | LoadedStoryItem (Ok item) ->
+    | LoadedStoryItem (itemId, Ok item) ->
         match state.StoryItems with
         | Resolved (Ok storiesMap) ->
             let modifiedStoriesMap =
               storiesMap
-              |> Map.remove item.id
-              |> Map.add item.id (Resolved (Ok item))
+              |> Map.remove itemId
+              |> Map.add itemId (Resolved (Ok item))
 
             let nextState = { state with StoryItems = Resolved (Ok modifiedStoriesMap) }
             nextState, Cmd.none
@@ -132,7 +132,7 @@ let update (msg: Msg) (state: State) =
         | _ ->
             state, Cmd.none
 
-    | LoadedStoryItem (Error (itemId, error)) ->
+    | LoadedStoryItem (itemId, Error error) ->
         match state.StoryItems with
         | Resolved (Ok storiesMap) ->
             let modifiedStoriesMap =
