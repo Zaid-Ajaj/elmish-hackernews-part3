@@ -30,7 +30,7 @@ type State =
     StoryItems : DeferredResult<Map<int, DeferredStoryItem>> }
 
 type Msg =
-  | LoadStoryItems of AsyncOperationEvent<Result<int list, string>>
+  | LoadStoryItems of AsyncOperationStatus<Result<int list, string>>
   | LoadedStoryItem of int * Result<HackernewsItem, string>
   | ChangeStories of Stories
 
